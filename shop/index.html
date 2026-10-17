@@ -1,1 +1,1016 @@
 
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>2Six2 Services</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+
+      /* =====================================================================
+         PRODUCT LIST (from products.html) – every rule scoped to .mode-list
+         ===================================================================== */
+      .mode-list {
+        --bg: #ffffff; --fg: #1f2328; --muted: #656d76; --line: #d8dee4;
+        --card: #f6f8fa; --accent: #1a73e8; --accent-fg: #ffffff;
+        --ok: #1a7f37; --bad: #cf222e; --radius: 10px;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: var(--fg); background: var(--bg); line-height: 1.45;
+      }
+      .mode-list .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
+      .mode-list[hidden], .mode-list header[hidden] { display: none; }
+      .mode-list header { display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+                          justify-content: space-between; margin-bottom: 16px; }
+      .mode-list header input { flex: 1 1 220px; padding: 9px 12px; border: 1px solid var(--line);
+                                border-radius: var(--radius); font-size: 15px; }
+      .mode-list button, .mode-list .btn { cursor: pointer; border: 1px solid var(--line); background: var(--bg);
+                     color: var(--fg); padding: 8px 14px; border-radius: var(--radius);
+                     font-size: 14px; text-decoration: none; display: inline-block; }
+      .mode-list .btn-primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+      .mode-list button:disabled { opacity: .45; cursor: not-allowed; }
+      .mode-list .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+      .mode-list .chip.active { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+      .mode-list .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+      .mode-list .card { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+              cursor: pointer; background: var(--bg);
+              transition: box-shadow .2s, transform .2s, border-color .2s; }
+      .mode-list .card:hover, .mode-list .card:focus-visible {
+              transform: translateY(-4px); border-color: var(--accent);
+              box-shadow: 0 10px 24px rgba(0,0,0,.14); outline: none; }
+      .mode-list .card:hover h3, .mode-list .card:focus-visible h3 { color: var(--accent); }
+      .mode-list .thumb { aspect-ratio: 4 / 3; background: var(--card); display: flex; align-items: center;
+               justify-content: center; font-size: 42px; color: var(--muted); overflow: hidden; }
+      .mode-list .thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
+      .mode-list .card:hover .thumb img { transform: scale(1.05); }
+      @media (prefers-reduced-motion: reduce) {
+        .mode-list .card, .mode-list .thumb img { transition: none; }
+        .mode-list .card:hover, .mode-list .card:hover .thumb img { transform: none; }
+      }
+      .mode-list .card-body { padding: 12px; }
+      .mode-list .card-body h3 { margin: 0 0 4px; font-size: 16px; }
+      .mode-list .muted { color: var(--muted); font-size: 13px; }
+      .mode-list .price { font-weight: 600; font-size: 17px; }
+      .mode-list .ok { color: var(--ok); } .mode-list .bad { color: var(--bad); }
+      .mode-list .detail { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+      @media (max-width: 700px) { .mode-list .detail { grid-template-columns: 1fr; } }
+      .mode-list .detail h1 { margin: 6px 0 8px; font-size: 26px; }
+      .mode-list .sizes { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 16px; }
+      .mode-list .size.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+      .mode-list .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+      .mode-list .row input[type=number] { width: 80px; padding: 8px; border: 1px solid var(--line);
+                                border-radius: var(--radius); font-size: 15px; }
+      .mode-list table { width: 100%; border-collapse: collapse; }
+      .mode-list td, .mode-list th { padding: 10px 6px; border-bottom: 1px solid var(--line); text-align: left; }
+      .mode-list .msg { padding: 40px; text-align: center; color: var(--muted); }
+
+      /* =====================================================================
+         FULL DETAILS PAGE (from product-details.html) – every rule scoped to .mode-details
+         ===================================================================== */
+      .mode-details {
+        --red: #d71920; --red-dark: #b3141a; --fg: #222; --muted: #666;
+        --line: #dcdcdc; --band: #efefef; --bg: #fff; --ok: #1a7f37; --bad: #cf222e;
+        /* System serif fonts only (no Google Fonts): Georgia is the closest match to Merriweather */
+        font-family: Georgia, Cambria, "Times New Roman", Times, serif; color: var(--fg);
+        background: var(--bg); font-size: 13px; line-height: 1.6;
+      }
+      .mode-details a { color: inherit; }
+      .mode-details .msg { padding: 40px 16px; text-align: center; color: var(--muted); white-space: pre-line; }
+      .mode-details .textbox { width: 50%; margin-left: auto; margin-right: auto; text-align: left; }
+
+      /* Top navigation menu */
+      .mode-details .nav-breadcrumb { display: block; width: 100%; word-wrap: break-word;
+        font-family: docs-Roboto, Roboto, sans-serif; font-weight: 400; line-height: 1.5;
+        font-size: 11.0pt; font-style: normal; font-variant: normal;
+        margin-left: 0.0pt; margin-right: 0.0pt; padding-bottom: 20px;
+        padding-left: 0.0pt; text-indent: 0; }
+      .mode-details .nav-breadcrumb-list { display: flex; flex-wrap: wrap; justify-content: flex-end; list-style: none; margin: 0; padding: 0; color: #1c1c1c; }
+      .mode-details .nav-breadcrumb-list li + li::before { content: ">"; padding: 0 0.4em; color: rgba(28, 28, 28, 1); }
+      .mode-details .nav-breadcrumb-item-inactive { color: #1c1c1c; }
+      .mode-details .nav-breadcrumb-item-active { color: #d51113; }
+
+      /* Title band */
+      .mode-details .band { background: var(--band); border-bottom: 1px dashed var(--line); padding: 18px 16px; text-align: center; }
+      .mode-details .band h1 { margin: 0; color: var(--red); font-size: clamp(24px, 5vw, 34px); font-weight: 700; }
+
+      .mode-details section { border-bottom: 1px dashed var(--line); padding: 16px 50px; }
+
+      /* Image carousel */
+      .mode-details .gallery { padding: 16px 0 12px; }
+      .mode-details .viewport { position: relative; max-width: 560px; margin: 0 auto; overflow: hidden; }
+      .mode-details .track { display: flex; transition: transform .35s ease; }
+      .mode-details .slide { flex: 0 0 100%; aspect-ratio: 1 / 0.88; background: #f4f4f4;
+              display: flex; align-items: center; justify-content: center; }
+      .mode-details .slide img { width: 100%; height: 100%; object-fit: contain; display: block; }
+      .mode-details .slide .no-img svg { max-width: 96px; }
+      .mode-details .slide .no-img span { font-size: 15px; }
+      .mode-details .arrow { position: absolute; top: 50%; transform: translateY(-50%); border: 0; cursor: pointer;
+              width: 30px; height: 30px; border-radius: 50%; background: rgba(0,0,0,.45); color: #fff;
+              font-size: 16px; line-height: 30px; padding: 0; opacity: 0; transition: opacity .2s; }
+      .mode-details .viewport:hover .arrow, .mode-details .arrow:focus-visible { opacity: 1; }
+      .mode-details .arrow.prev { left: 6px; } .mode-details .arrow.next { right: 6px; }
+      .mode-details .dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+      .mode-details .dot { width: 9px; height: 9px; border-radius: 50%; border: 0; padding: 0;
+            background: #ccc; cursor: pointer; }
+      .mode-details .dot.active { background: var(--red); }
+
+      /* Features / description */
+      .mode-details .description-wrap { font-family: 'Roboto Serif', Arial; font-weight: 400; line-height: 1.5;
+        color: rgba(28, 28, 28, 1); padding-right: 48px; padding-left: 48px; }
+      .mode-details .description p { margin: 0 0 8px; font-size: 16px; max-width: calc(1280px - 96px); }
+      .mode-details .description p:last-child { margin-bottom: 0; }
+      .mode-details .description b { font-weight: 700; }
+
+      /* Buy box */
+      .mode-details .buy { margin: 14px 20px; border: 1px dashed var(--line); padding: 14px 16px; }
+      .mode-details .buy-wrap { padding: 0; text-align: center; }
+      .mode-details .buy .row { text-align: center; display: inline-block; }
+      .mode-details #qty { margin-left: 20px; }
+      .mode-details .price { font-size: 20px; font-weight: 700; color: var(--red); }
+      .mode-details .label { font-weight: 700; margin: 10px 0 6px; }
+      .mode-details .sizes { display: flex; flex-wrap: wrap; gap: 6px; }
+      .mode-details .size { font: inherit; font-size: 12px; cursor: pointer; padding: 5px 12px; background: #fff;
+              border: 1px solid var(--line); border-radius: 3px; color: var(--fg); }
+      .mode-details .size.active { border-color: var(--red); box-shadow: 0 0 0 1px var(--red); }
+      .mode-details .size.oos { color: #aaa; text-decoration: line-through; }
+      .mode-details .stock { margin: 10px 0; font-size: 12px; }
+      .mode-details .qty-err { min-height: 1.5em; margin-top: 6px; font-size: 12px; color: var(--red); }
+      .mode-details .row input[aria-invalid="true"] { border-color: var(--red); }
+      .mode-details .ok { color: var(--ok); } .mode-details .bad { color: var(--bad); }
+      .mode-details .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+      .mode-details .row input { width: 70px; padding: 6px 8px; font: inherit; border: 1px solid var(--line); border-radius: 3px; }
+
+      /* Buttons (match Previous / Next in Google Sites) */
+      .mode-details .btn { font: inherit; font-size: 12px; font-weight: 700; display: inline-block; text-align: center;
+            min-width: 98px; padding: 4px 18px; border-radius: 2px; text-decoration: none; cursor: pointer;
+            border: 1px solid var(--red); background: #fff; color: var(--red); }
+      .mode-details .btn.solid { background: var(--red); color: #fff; }
+      .mode-details .btn.solid:hover { background: var(--red-dark); border-color: var(--red-dark); }
+      .mode-details .btn:not(.solid):hover { background: #fff3f3; }
+      .mode-details .btn.disabled { opacity: .35; pointer-events: none; }
+      .mode-details .btn:disabled { opacity: .35; cursor: not-allowed; }
+      .mode-details .pager { display: flex; justify-content: space-between; gap: 12px; }
+
+      /* Related products */
+      .mode-details .related { border-bottom: 0; text-align: center; padding-top: 22px; }
+      .mode-details .rel-toggle { font: inherit; background: none; border: 0; cursor: pointer; color: var(--red);
+                    font-size: clamp(20px, 4vw, 24px); font-weight: 700; padding: 0 30px 8px;
+                    border-bottom: 1px solid #555; width: min(420px, 100%); position: relative; }
+      .mode-details .rel-toggle .chev { position: absolute; right: 4px; top: 6px; font-size: 14px; color: #555;
+                          transition: transform .2s; }
+      .mode-details .rel-toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+      .mode-details .rel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                  gap: 14px; margin-top: 18px; text-align: left; }
+      .mode-details .rel-grid[hidden] { display: none; }
+      .mode-details .card { border: 1px solid var(--line); text-decoration: none; display: block; transition: box-shadow .15s; }
+      .mode-details .card:hover { box-shadow: 0 3px 12px rgba(0,0,0,.1); }
+      .mode-details .card .thumb { aspect-ratio: 1; background: #f4f4f4; display: flex; align-items: center;
+                    justify-content: center; font-size: 34px; color: #bbb; overflow: hidden; }
+      .mode-details .card .thumb img { width: 100%; height: 100%; object-fit: cover; }
+      .mode-details .card .body { padding: 8px 10px; }
+      .mode-details .card .name { font-weight: 700; color: var(--fg); }
+      .mode-details .card .p { color: var(--red); font-size: 12px; }
+
+      /* =====================================================================
+         CART (shared by both modes) – lives outside .mode-list / .mode-details
+         ===================================================================== */
+      body { --cart-accent: #1a73e8; --cart-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+
+      /* Floating cart button (details page) */
+      .cart-fab { position: fixed; right: 16px; bottom: 16px; z-index: 50; width: 56px; height: 56px;
+                  border-radius: 50%; border: 0; cursor: pointer; background: var(--cart-accent); color: #fff;
+                  font-size: 24px; box-shadow: 0 4px 14px rgba(0,0,0,.25);
+                  display: flex; align-items: center; justify-content: center; }
+      .cart-fab[hidden] { display: none; }
+      body.has-fab { padding-bottom: 88px; }   /* 56px button + 16px gap + breathing room */
+      .cart-fab .cart-count { position: absolute; top: -4px; right: -4px; min-width: 22px; height: 22px;
+                              padding: 0 6px; border-radius: 11px; background: #fff; color: var(--cart-accent);
+                              border: 2px solid var(--cart-accent); font: 700 12px/18px var(--cart-font); }
+
+      /* Cart dialog */
+      .cart-dialog { font-family: var(--cart-font); color: #222; width: min(560px, calc(100vw - 32px));
+                     max-height: calc(100vh - 32px); border: 0; border-radius: 10px; padding: 0;
+                     box-shadow: 0 10px 40px rgba(0,0,0,.3); }
+      .cart-dialog::backdrop { background: rgba(0,0,0,.45); }
+      .cd-head { display: flex; align-items: center; justify-content: space-between;
+                 padding: 14px 16px; border-bottom: 1px solid #e3e3e3; }
+      .cd-head h2 { margin: 0; font-size: 18px; }
+      .cd-x { border: 0; background: none; font-size: 24px; line-height: 1; cursor: pointer; color: #666; padding: 4px 8px; }
+      .cd-body { padding: 12px 16px 16px; overflow: auto; }
+      .cd-empty { padding: 28px 0; text-align: center; color: #666; }
+      .cd-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+      .cd-table td, .cd-table th { padding: 8px 4px; border-bottom: 1px solid #e3e3e3; text-align: left; vertical-align: top; }
+      .cd-table .num { text-align: right; white-space: nowrap; }
+      .cd-total th { border-bottom: 0; font-size: 15px; }
+      .cd-rm { font: inherit; font-size: 12px; border: 0; background: none; color: #cf222e;
+               cursor: pointer; text-decoration: underline; padding: 0; }
+      .cd-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+      .cd-btn { font: inherit; font-size: 14px; cursor: pointer; padding: 8px 14px; border-radius: 6px;
+                border: 1px solid var(--cart-accent); background: #fff; color: var(--cart-accent);
+                text-decoration: none; display: inline-block; }
+      .cd-btn.primary { background: var(--cart-accent); color: #fff; }
+
+      /* "Order by email" step */
+      .cd-intro { margin: 0 0 12px; font-size: 14px; }
+      .cd-to { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; margin-bottom: 6px; font-size: 14px; }
+      .cd-preview { margin: 8px 0 0; padding: 10px 12px; max-height: 240px; overflow: auto; white-space: pre-wrap;
+                    word-break: break-word; background: #f6f8fa; border: 1px solid #e3e3e3; border-radius: 6px;
+                    font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .cd-link { font: inherit; font-size: 13px; color: var(--cart-accent); border: 0; background: none; padding: 0;
+                 cursor: pointer; text-decoration: underline; }
+      .cd-note { margin: 12px 0 0; font-size: 13px; color: #666; }
+
+      /* "No image available" placeholder (fills its image box on cards, carousel and related products) */
+      .no-img { width: 100%; height: 100%; padding: 8px; display: flex; flex-direction: column; align-items: center;
+                justify-content: center; gap: 6px; background: #f4f4f4; color: #9aa0a6; text-align: center;
+                font: 13px/1.3 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+      .no-img svg { width: 36%; max-width: 64px; height: auto; }
+
+      /* "Added to cart" message */
+      .shop-toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 60;
+                    max-width: calc(100vw - 104px); background: #1f2328; color: #fff; padding: 10px 16px;
+                    border-radius: 10px; font: 14px var(--cart-font); opacity: 0; transition: opacity .2s;
+                    pointer-events: none; }
+      .shop-toast.show { opacity: 1; }
+    </style>
+  </head>
+  <body>
+    <div id="root"><div style="padding:40px;text-align:center;color:#666">Loading…</div></div>
+
+    <script>
+      /* ===================== CONFIGURATION ===================== */
+      const CONFIG = {
+        // ---- What the product list shows ----
+        IS_CATEGORY_FILTER_ON: false,   // false = list every product; true = only products whose Category = CATEGORY_FILTER
+        CATEGORY_FILTER:       "",      // e.g. "Gun Safes"
+        LIST_OPENS_FULL_DETAILS: true,  // true = clicking a product opens the full details page
+                                        // (carousel, Previous/Next, Related); false = the simple detail view
+        // Page URL options (override the settings above):
+        //   shop.html?category=Gun%20Safes     -> list filtered to that category
+        //   shop.html?product=Product%20A      -> list opened on that product's details page
+
+        // ---- Shared settings ----
+        // Published CSV link of the Products tab: in the sheet, File → Share → Publish to web →
+        // choose the "Products" tab and "Comma-separated values (.csv)" → Publish, and paste the link here.
+        // The spreadsheet itself can then stay "Restricted" – its real ID is never in this page.
+        SHEET_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRYrIuBARqks3Z3kKB0MGU9yM7VVxtQPdelNl_TDsT_GiAGzSc74iVYTlOOEYnkOU1dkFkpfahSgbH5/pub?gid=344177599&single=true&output=csv",
+        CURRENCY_PREFIX: "$",
+        CURRENCY_SUFFIX: "EC",
+        ORDER_EMAIL: "2six2services@gmail.com",  // customers send their order email here
+        RELATED_MAX: 4 // Number of related products to show on a details page
+      };
+      /* ========================================================= */
+      /*
+        Products tab columns (header row; names are case-insensitive, any order; only "Product" column is required).
+        Keep only what the shop shows – everything in the published tab is public:
+          ID          optional unique key (use if two products share a name)
+          Category    e.g. "Gun Safes" – used for Previous/Next and default Related
+          Product     product name (one row per size; repeat the name for each size)
+          Description one point per line inside the cell:  Quick and easy access - Enter text here
+                      (text before " - " is shown bold; a line without " - " is shown as plain text)
+          Size        e.g. Small, Medium, Large (blank = "One size")
+          Price       number
+          Quantity    stock count
+          Image       one or more image URLs, separated by new lines or commas (Drive share links work)
+          Link        optional Google Sites URL of this product's page – only used for Previous/Next/Related
+                      products that are not in the list (e.g. hidden by the category filter)
+          Related     optional, comma-separated product names; blank = other products in the same Category
+      */
+
+      // Category the list is limited to ("" = all). "?category=..." in the page URL wins over CONFIG.
+      function activeCategoryFilter() {
+        const q = new URLSearchParams(location.search).get("category");
+        if (q) return q.trim();
+        return CONFIG.IS_CATEGORY_FILTER_ON ? CONFIG.CATEGORY_FILTER.trim() : "";
+      }
+
+      /* ===================== SHARED HELPERS ===================== */
+      // Fetch the published CSV and hand it to the page as { status, table: { cols, rows } } –
+      // the same shape the page has always read, so the product code is unchanged
+      async function loadSheet() {
+        if (!CONFIG.SHEET_CSV_URL) {
+          return showMsg("No product list yet: paste the published CSV link of the Products tab into SHEET_CSV_URL.");
+        }
+        let text;
+        try {
+          const res = await fetch(CONFIG.SHEET_CSV_URL, { cache: "no-store" });
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          text = await res.text();
+        } catch (e) {
+          return showMsg("Could not load the product list. Please check your connection and try again.");
+        }
+        // An unpublished or wrong link returns a Google web page instead of CSV
+        if (/^\s*</.test(text)) {
+          return showMsg("The product list link isn't a published CSV. In the sheet use File → Share → Publish to web → Products → CSV.");
+        }
+        const [header = [], ...rows] = parseCSV(text).filter(r => r.some(v => v.trim() !== ""));
+        window.handleSheet({
+          status: "ok",
+          table: {
+            cols: header.map(h => ({ label: h })),
+            rows: rows.map(r => ({ c: header.map((_, i) => ({ v: r[i] == null || r[i] === "" ? null : r[i] })) }))
+          }
+        });
+      }
+
+      // RFC 4180 CSV: quoted fields may contain commas, line breaks and doubled quotes ("")
+      function parseCSV(text) {
+        const rows = [];
+        let row = [], field = "", quoted = false;
+        text = text.replace(/^﻿/, "");
+        for (let i = 0; i < text.length; i++) {
+          const ch = text[i];
+          if (quoted) {
+            if (ch === '"' && text[i + 1] === '"') { field += '"'; i++; }
+            else if (ch === '"') quoted = false;
+            else field += ch;
+          } else if (ch === '"') quoted = true;
+          else if (ch === ",") { row.push(field); field = ""; }
+          else if (ch === "\n" || ch === "\r") {
+            if (ch === "\r" && text[i + 1] === "\n") i++;
+            row.push(field); rows.push(row); row = []; field = "";
+          } else field += ch;
+        }
+        if (field !== "" || row.length) { row.push(field); rows.push(row); }
+        return rows;
+      }
+
+      // Turn a Google Drive share link into a direct image URL
+      function driveImg(u) {
+        const m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:[^#]*&)?id=)([\w-]+)/);
+        return m ? "https://lh3.googleusercontent.com/d/" + m[1] : u;
+      }
+
+      const money = n => `${CONFIG.CURRENCY_PREFIX}${Number(n).toFixed(2)} ${CONFIG.CURRENCY_SUFFIX}`;
+      const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+      // Grey camera + "No image available": used when a product has no image or its image fails to load
+      const NO_IMAGE_HTML = `<div class="no-img">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+               stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.8l1.4-2h6.6l1.4 2h1.8A2.5 2.5 0 0 1 21 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/>
+            <circle cx="12" cy="13" r="3.5"/>
+          </svg>
+          <span>No image available</span>
+        </div>`;
+      const imgOrPlaceholder = (src, alt) =>
+        src ? `<img src="${esc(src)}" alt="${esc(alt)}" loading="lazy">` : NO_IMAGE_HTML;
+      // Broken image links (e.g. a Drive file no longer shared) show the placeholder too
+      document.addEventListener("error", e => {
+        if (e.target.tagName === "IMG") e.target.outerHTML = NO_IMAGE_HTML;
+      }, true);
+      
+      function showMsg(t) {
+        const app = document.getElementById("app") || document.getElementById("root");
+        app.innerHTML = `<div class="msg">${esc(t)}</div>`;
+      }
+
+      function toast(t) {
+        let el = document.getElementById("toast");
+        if (!el) {
+          el = document.createElement("div");
+          el.id = "toast"; el.className = "shop-toast"; el.setAttribute("role", "status");
+          document.body.appendChild(el);
+        }
+        el.textContent = t; el.classList.add("show");
+        clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 1800);
+      }
+
+      /* ===================== CART (shared) =====================
+         One cart, kept in localStorage – products, sizes and quantities only, never customer details.
+         Any element with class "cart-count" shows the item count.
+         Cart.open() shows the cart dialog: cart -> "Order by email" (preview, open email app, or copy). */
+      const cartId = p => slug(p.category + "-" + p.name);   // same id the listing uses for its products
+
+      const Cart = (() => {
+        const KEY = "gs-cart";
+        let items = load(KEY, []);
+        try { localStorage.removeItem("gs-customer"); } catch (e) {}   // customer details saved by an earlier version
+        let view = null;     // redraw of the product view on screen, so its stock count follows the cart
+        let dialog = null;
+        let step = "cart";   // "cart" | "email"
+
+        function load(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch (e) { return fallback; } }
+        function store(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} }
+        function save() {
+          store(KEY, items);
+          changed();
+        }
+        function changed() {
+          syncBadges();
+          if (dialog && dialog.open) drawDialog();
+          if (view) view();
+        }
+        const count = () => items.reduce((s, i) => s + i.qty, 0);
+        const total = () => items.reduce((s, i) => s + i.price * i.qty, 0);
+        const qtyOf = (id, size) => (items.find(i => i.id === id && i.size === size) || { qty: 0 }).qty;
+
+        function add(id, name, size, price, n) {
+          const item = items.find(i => i.id === id && i.size === size);
+          if (item) item.qty += n;
+          else items.push({ id, name, size, price, qty: n });
+          save();
+        }
+        // Bring cart prices in line with the sheet; lookup(id, size) returns the current price, or null if unknown
+        function reprice(lookup) {
+          let any = false;
+          items.forEach(i => {
+            const p = lookup(i.id, i.size);
+            if (p != null && p !== i.price) { i.price = p; any = true; }
+          });
+          if (any) save();
+        }
+        function syncBadges() {
+          document.querySelectorAll(".cart-count").forEach(el => el.textContent = count());
+        }
+
+        // ---------- Order email: previewed in the dialog, opened in the email app, or copied
+        // The customer fills in their own details in their email, so the page never handles them.
+        const SUBJECT = "New order";
+        function orderText() {
+          const lines = items.map(i => `- ${i.name} | Size: ${i.size} | Qty: ${i.qty} | ${money(i.price * i.qty)}`);
+          return `Hello,\n\nI would like to order:\n\n${lines.join("\n")}\n\nTotal: ${money(total())}\n\n` +
+                 `Name:\nPhone:\nDelivery address:\n`;
+        }
+        const mailto = () => `mailto:${CONFIG.ORDER_EMAIL}?subject=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(orderText())}`;
+
+        // ---------- Dialog
+        function open() {
+          if (!dialog) {
+            dialog = document.createElement("dialog");
+            dialog.className = "cart-dialog";
+            dialog.setAttribute("aria-labelledby", "cartTitle");
+            dialog.innerHTML = `
+              <div class="cd-head">
+                <h2 id="cartTitle">Your cart</h2>
+                <button class="cd-x" aria-label="Close">×</button>
+              </div>
+              <div class="cd-body"></div>`;
+            document.body.appendChild(dialog);
+            dialog.querySelector(".cd-x").onclick = () => dialog.close();
+            dialog.addEventListener("click", e => { if (e.target === dialog) dialog.close(); });  // backdrop
+            dialog.addEventListener("close", () => { step = "cart"; });
+          }
+          drawDialog();
+          dialog.showModal();
+        }
+        const goStep = s => { step = s; drawDialog(); dialog.scrollTop = 0; };
+        const setTitle = t => { dialog.querySelector("#cartTitle").textContent = t; };
+        const dialogBody = () => dialog.querySelector(".cd-body");
+
+        function drawDialog() {
+          if (!items.length) step = "cart";
+          if (step === "email") return drawEmail();
+          drawCart();
+        }
+
+        function drawCart() {
+          setTitle("Your cart");
+          const body = dialogBody();
+          if (!items.length) {
+            body.innerHTML = `<div class="cd-empty">Your cart is empty.</div>`;
+            return;
+          }
+          body.innerHTML = `
+            <table class="cd-table">
+              <tr><th>Product</th><th>Size</th><th class="num">Qty</th><th class="num">Price</th><th></th></tr>
+              ${items.map((i, k) => `<tr>
+                  <td>${esc(i.name)}</td><td>${esc(i.size)}</td><td class="num">${i.qty}</td>
+                  <td class="num">${money(i.price * i.qty)}</td>
+                  <td><button class="cd-rm" data-k="${k}">Remove</button></td></tr>`).join("")}
+              <tr class="cd-total"><th colspan="3">Total</th><th class="num">${money(total())}</th><th></th></tr>
+            </table>
+            <div class="cd-actions">
+              <button class="cd-btn primary" data-email>Order by email</button>
+              <button class="cd-btn" data-clear>Clear cart</button>
+            </div>`;
+          body.querySelectorAll(".cd-rm").forEach(b => b.onclick = () => { items.splice(+b.dataset.k, 1); save(); });
+          body.querySelector("[data-clear]").onclick = () => { items = []; save(); };
+          body.querySelector("[data-email]").onclick = () => goStep("email");
+        }
+
+        function drawEmail() {
+          setTitle("Order by email");
+          const body = dialogBody();
+          body.innerHTML = `
+            <p class="cd-intro">Send this order from your own email. Fill in your name, phone and delivery
+              address at the bottom before sending.</p>
+            <div class="cd-to">
+              <span>To: <b class="cd-addr">${esc(CONFIG.ORDER_EMAIL)}</b></span>
+              <button type="button" class="cd-link" data-copy-addr>Copy address</button>
+            </div>
+            <div class="cd-to"><span>Subject: <b>${esc(SUBJECT)}</b></span></div>
+            <pre class="cd-preview">${esc(orderText())}</pre>
+            <div class="cd-actions">
+              <a class="cd-btn primary" target="_blank" rel="noopener" href="${mailto()}">Open my email app</a>
+              <button type="button" class="cd-btn" data-copy>Copy order</button>
+              <button type="button" class="cd-btn" data-back>← Back to cart</button>
+            </div>
+            <p class="cd-note">Nothing happens when you click “Open my email app”? Copy the order, paste it into
+              a new email (for example in Gmail) and send it to the address above.</p>`;
+          const preview = body.querySelector(".cd-preview");
+          body.querySelector("[data-copy]").onclick = e => copyText(e.currentTarget, preview, "Copy order");
+          body.querySelector("[data-copy-addr]").onclick = e => copyText(e.currentTarget, body.querySelector(".cd-addr"), "Copy address");
+          body.querySelector("[data-back]").onclick = () => goStep("cart");
+        }
+
+        async function copyText(btn, el, label) {
+          let ok = false;
+          try {
+            await navigator.clipboard.writeText(el.textContent);
+            ok = true;
+          } catch (e) {
+            // The clipboard API can be blocked inside embeds: select the text and try the older way
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            const sel = getSelection();
+            sel.removeAllRanges(); sel.addRange(range);
+            try { ok = document.execCommand("copy"); } catch (e2) {}
+          }
+          btn.textContent = ok ? "Copied ✓" : "Text selected – press Ctrl+C to copy";
+          setTimeout(() => { btn.textContent = label; }, 2500);
+        }
+
+        // Keep other open tabs/embeds of the shop in step
+        window.addEventListener("storage", e => { if (e.key === KEY) { items = load(KEY, []); changed(); } });
+
+        return { add, qtyOf, reprice, open, syncBadges, setView: fn => { view = fn; } };
+      })();
+
+      /* =====================================================================
+         LISTING PAGE (products.html logic) – returns the sheet handler
+         ===================================================================== */
+      function ListingPage(CATEGORY_FILTER) {
+        document.title = CATEGORY_FILTER ? CATEGORY_FILTER + " | Shop" : "Shop";
+        // The full details page sits beside (not inside) the listing so the two style sets never mix
+        document.getElementById("root").innerHTML = `
+          <div class="mode-list" id="list-view">
+            <div class="wrap">
+              <header id="searchBar">
+                <input id="search" type="search" placeholder="Search products…">
+                <button id="cartBtn">🛒 Cart (<span id="cartCount" class="cart-count">0</span>)</button>
+              </header>
+              <div id="app"><div class="msg">Loading products…</div></div>
+            </div>
+          </div>
+          <div class="mode-details" id="full-details" hidden></div>
+          <button class="cart-fab" id="cartFab" aria-label="Open cart" hidden>🛒<span class="cart-count">0</span></button>`;
+
+        const app = document.getElementById("app");
+        const listView = document.getElementById("list-view");
+        const searchBar = document.getElementById("searchBar");
+        const fullEl = document.getElementById("full-details");
+        const fab = document.getElementById("cartFab");
+        // Product details on screen: hide the search bar and use the floating cart button instead
+        const setDetailsShown = on => {
+          searchBar.hidden = on;
+          fab.hidden = !on;
+          document.body.classList.toggle("has-fab", on);   // room at the bottom so the button covers nothing
+        };
+        let products = [];
+        let fullProducts = [];   // same sheet parsed the product-details way (images, link, related)
+        let activePage = "";
+        Cart.syncBadges();
+
+        // Previous/Next, Related and breadcrumbs stay inside the listing instead of leaving the embed
+        const fullView = CONFIG.LIST_OPENS_FULL_DETAILS && createDetailsView(fullEl, {
+          linkFor: fp => {
+            const p = listingFor(fp);
+            if (p) return { href: "#/product/" + encodeURIComponent(p.id) };
+            return fp.link ? { href: fp.link, target: "_top" } : null;
+          },
+          productsHref: "#",
+          categoryHref: cat => "#/category/" + encodeURIComponent(cat)
+        });
+
+        function handle(res) {
+          if (res.status === "error") {
+            return showMsg("Sheet error: " + res.errors.map(e => e.detailed_message || e.message).join("; "));
+          }
+          const cols = res.table.cols.map(c => (c.label || "").trim().toLowerCase());
+          const col = name => cols.indexOf(name);
+          const cell = (r, name) => {
+            const i = col(name);
+            return i < 0 || !r.c[i] || r.c[i].v == null ? "" : r.c[i].v;
+          };
+          const num = v => typeof v === "number" ? v : parseFloat(String(v).replace(/[^0-9.\-]/g, "")) || 0;
+
+          // Group rows by Category + Product so each product has a list of size variants
+          const map = new Map();
+          res.table.rows.forEach(r => {
+            const name = String(cell(r, "product")).trim();
+            if (!name) return;
+            const category = String(cell(r, "category")).trim();
+            if (CATEGORY_FILTER && category.toLowerCase() !== CATEGORY_FILTER.toLowerCase()) return;
+
+            const id = slug(category + "-" + name);
+            if (!map.has(id)) map.set(id, { id, category, name, description: "", image: "", variants: [] });
+            const p = map.get(id);
+            const desc = String(cell(r, "description")).trim();
+            // First image only; Drive share links converted to direct URLs
+            const img = driveImg((String(cell(r, "image")).split(/[\n,]+/)[0] || "").trim());
+            if (!p.description && desc) p.description = desc;
+            if (!p.image && img) p.image = img;
+            p.variants.push({
+              size: String(cell(r, "size")).trim() || "One size",
+              price: num(cell(r, "price")),
+              qty: Math.max(0, Math.floor(num(cell(r, "quantity"))))
+            });
+          });
+          products = [...map.values()];
+          if (fullView) fullProducts = parseDetailsProducts(res);
+          // Cart items keep the price they were added at; update them if the sheet has changed since
+          Cart.reprice((id, size) => {
+            const v = (products.find(p => p.id === id) || { variants: [] }).variants.find(v => v.size === size);
+            return v ? v.price : null;
+          });
+
+          // "?product=Name" (e.g. old product-details links) opens that product's page
+          const asked = (new URLSearchParams(location.search).get("product") || "").trim().toLowerCase();
+          const start = asked && !location.hash && products.find(p => p.name.toLowerCase() === asked);
+          if (start) history.replaceState(null, "", "#/product/" + encodeURIComponent(start.id));
+          route();
+        }
+
+        // ---------- Routing (hash-based, inside the embed)
+        window.addEventListener("hashchange", route);
+        function route() {
+          if (!products.length) return showMsg("No products found.");
+          Cart.setView(null);
+          closeFull();
+          setDetailsShown(false);
+          const m = location.hash.match(/^#\/product\/(.+)$/);
+          if (m) {
+            const p = products.find(x => x.id === decodeURIComponent(m[1]));
+            if (p) return fullView ? renderFull(p) : renderDetail(p);
+          }
+          const c = location.hash.match(/^#\/category\/(.*)$/);
+          if (c) activePage = decodeURIComponent(c[1]);
+          renderList();
+        }
+        const go = hash => { location.hash = hash; window.scrollTo(0, 0); };
+
+        // ---------- Full product-details page (carousel, Previous/Next, Related) inside the listing
+        const sameName = (a, b) => a.name.toLowerCase() === b.name.toLowerCase();
+        const sameProduct = (a, b) => sameName(a, b) && a.category.toLowerCase() === b.category.toLowerCase();
+        const fullFor = p => fullProducts.find(fp => sameProduct(fp, p)) || fullProducts.find(fp => sameName(fp, p));
+        const listingFor = fp => products.find(p => sameProduct(p, fp)) || products.find(p => sameName(p, fp));
+
+        function renderFull(p) {
+          const fp = fullFor(p);
+          if (!fp) return renderDetail(p);
+          listView.hidden = true;
+          app.innerHTML = "";
+          fullEl.hidden = false;
+          setDetailsShown(true);
+          fullView.render(fp, fullProducts);
+          window.scrollTo(0, 0);
+        }
+        function closeFull() {
+          if (!fullView || fullEl.hidden) return;
+          fullView.stop();
+          fullEl.hidden = true;
+          fullEl.innerHTML = "";
+          listView.hidden = false;
+        }
+
+        // ---------- Product listing
+        function renderList() {
+          const q = document.getElementById("search").value.trim().toLowerCase();
+          const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+          const list = products.filter(p =>
+            (!activePage || p.category === activePage) &&
+            (!q || (p.name + " " + p.description + " " + p.category).toLowerCase().includes(q)));
+
+          const chips = (!CATEGORY_FILTER && categories.length > 1)
+            ? `<div class="chips">
+                 <button class="chip ${!activePage ? "active" : ""}" data-page="">All</button>
+                 ${categories.map(pg => `<button class="chip ${pg === activePage ? "active" : ""}" data-page="${esc(pg)}">${esc(pg)}</button>`).join("")}
+               </div>` : "";
+
+          app.innerHTML = chips + (list.length ? `<div class="grid">${list.map(cardHTML).join("")}</div>`
+                                               : `<div class="msg">No matching products.</div>`);
+
+          app.querySelectorAll(".chip").forEach(b => b.onclick = () => { activePage = b.dataset.page; renderList(); });
+          app.querySelectorAll(".card").forEach(c => {
+            c.onclick = () => go("#/product/" + encodeURIComponent(c.dataset.id));
+            c.onkeydown = e => { if (e.key === "Enter") c.onclick(); };
+          });
+        }
+
+        function cardHTML(p) {
+          const prices = p.variants.map(v => v.price);
+          const min = Math.min(...prices), max = Math.max(...prices);
+          const stock = p.variants.reduce((s, v) => s + v.qty, 0);
+          return `<div class="card" data-id="${esc(p.id)}" tabindex="0" role="link" aria-label="${esc(p.name)}">
+              <div class="thumb">${thumb(p)}</div>
+              <div class="card-body">
+                <div class="muted">${esc(p.category)}</div>
+                <h3>${esc(p.name)}</h3>
+                <div class="price">${min === max ? money(min) : "From " + money(min)}</div>
+                <div class="muted">${p.variants.map(v => esc(v.size)).join(" · ")}</div>
+                <div class="${stock ? "ok" : "bad"}" style="font-size:13px">${stock ? "In stock" : "Out of stock"}</div>
+              </div>
+            </div>`;
+        }
+
+        // ---------- Product details (inside the listing)
+        function renderDetail(p) {
+          setDetailsShown(true);
+          let sel = p.variants.findIndex(v => v.qty > 0);
+          if (sel < 0) sel = 0;
+
+          const draw = () => {
+            const v = p.variants[sel];
+            const available = v.qty - Cart.qtyOf(p.id, v.size);
+            app.innerHTML = `
+              <p><button id="back">← Back to products</button></p>
+              <div class="detail">
+                <div class="thumb" style="border-radius:var(--radius)">${thumb(p)}</div>
+                <div>
+                  <div class="muted">${esc(p.category)}</div>
+                  <h1>${esc(p.name)}</h1>
+                  <div class="price" style="font-size:22px">${money(v.price)}</div>
+                  <p>${esc(p.description).replace(/\n/g, "<br>")}</p>
+
+                  <strong>Size</strong>
+                  <div class="sizes">
+                    ${p.variants.map((x, i) => `<button class="size ${i === sel ? "active" : ""}" data-i="${i}"
+                         ${x.qty ? "" : 'title="Out of stock"'}>${esc(x.size)}${x.qty ? "" : " ✕"}</button>`).join("")}
+                  </div>
+
+                  <p class="${available > 0 ? "ok" : "bad"}">
+                    ${available > 0 ? available + " available" : (v.qty ? "All available stock is in your cart" : "Out of stock")}
+                  </p>
+
+                  <div class="row">
+                    <input id="qty" type="number" min="1" max="${Math.max(1, available)}" value="1" ${available > 0 ? "" : "disabled"}>
+                    <button id="add" class="btn-primary btn" ${available > 0 ? "" : "disabled"}>Add to cart</button>
+                  </div>
+                </div>
+              </div>`;
+
+            document.getElementById("back").onclick = () => go("");
+            app.querySelectorAll(".size").forEach(b => b.onclick = () => { sel = +b.dataset.i; draw(); });
+            const add = document.getElementById("add");
+            if (add) add.onclick = () => {
+              const n = Math.min(available, Math.max(1, parseInt(document.getElementById("qty").value, 10) || 1));
+              Cart.add(p.id, p.name, v.size, v.price, n);   // redraws this view through Cart.setView
+              toast(`Added ${n} × ${p.name} (${v.size})`);
+            };
+          };
+          Cart.setView(draw);
+          draw();
+        }
+
+        function thumb(p) {
+          return imgOrPlaceholder(p.image, p.name);
+        }
+
+        document.getElementById("search").addEventListener("input", () => { if (location.hash) go(""); else renderList(); });
+        document.getElementById("cartBtn").onclick = Cart.open;
+        fab.onclick = Cart.open;
+
+        return handle;
+      }
+
+      /* =====================================================================
+         FULL DETAILS PAGE (product-details.html logic), shown inside the list
+         ===================================================================== */
+      // Parse the sheet the product-details way: all images, Link, Related, grouped by ID (or name)
+      function parseDetailsProducts(res) {
+        const cols = res.table.cols.map(c => (c.label || "").trim().toLowerCase());
+        const cell = (r, ...names) => {
+          for (const n of names) {
+            const i = cols.indexOf(n);
+            const c = i < 0 ? null : r.c[i];
+            if (c && (c.v != null || c.f != null)) return c.v != null ? c.v : c.f;
+          }
+          return "";
+        };
+        const str = (r, ...n) => String(cell(r, ...n)).trim();
+        const num = v => typeof v === "number" ? v : parseFloat(String(v).replace(/[^0-9.\-]/g, "")) || 0;
+        const split = s => s.split(/[\n,]+/).map(x => x.trim()).filter(Boolean);
+
+        // Group rows into products (one row per size variant), keeping sheet order
+        const map = new Map();
+        res.table.rows.forEach(r => {
+          const name = str(r, "product");
+          if (!name) return;
+          const category = str(r, "category", "page");
+          const key = (str(r, "id") || name).toLowerCase();
+          if (!map.has(key)) map.set(key, { key, category, name, description: [], images: [],
+                                            link: "", related: [], variants: [] });
+          const p = map.get(key);
+          if (!p.description.length) p.description = str(r, "description", "features").split(/\n+/).map(x => x.trim()).filter(Boolean);
+          if (!p.link) p.link = str(r, "link", "url");
+          if (!p.related.length) p.related = split(str(r, "related"));
+          split(str(r, "image", "images")).map(driveImg).forEach(u => { if (!p.images.includes(u)) p.images.push(u); });
+          p.variants.push({
+            size: str(r, "size") || "One size",
+            price: num(cell(r, "price")),
+            qty: Math.max(0, Math.floor(num(cell(r, "quantity", "qty", "stock"))))
+          });
+        });
+        return [...map.values()];
+      }
+
+      /* Full product-details page drawn into `app`. opts supplies the links:
+           linkFor(p)            -> { href, target } or null   (Previous/Next buttons and Related cards)
+           productsHref          -> breadcrumb "Products" link
+           categoryHref(category)-> breadcrumb category link
+         Returns { render(p, products), stop() }. */
+      function createDetailsView(app, { linkFor, productsHref, categoryHref }) {
+        const linkAttrs = l => `href="${esc(l.href)}"${l.target ? ` target="${esc(l.target)}"` : ""}`;
+        let timer;   // carousel autoplay
+
+        /* ---------------- Render the details page ---------------- */
+        function render(p, products) {
+          clearInterval(timer);
+          // Previous / Next: products in the same Category, in sheet order
+          const siblings = products.filter(x => !p.category || x.category === p.category);
+          const idx = siblings.indexOf(p);
+          const prev = siblings[idx - 1], next = siblings[idx + 1];
+
+          // Related: explicit list, else others in the same Category
+          let related = p.related.length
+            ? p.related.map(n => products.find(x => x.name.toLowerCase() === n.toLowerCase() || x.key === n.toLowerCase())).filter(Boolean)
+            : siblings.filter(x => x !== p);
+          related = related.slice(0, CONFIG.RELATED_MAX);
+
+          const slides = p.images.length ? p.images : [""];
+
+          app.innerHTML = `
+            <div class="band">
+              <!-- Navigation breadcrumbs -->
+              <nav class="nav-breadcrumb" aria-label="Breadcrumb">
+                <ol class="nav-breadcrumb-list">
+                  <li class="nav-breadcrumb-item-inactive"> <a href="${esc(productsHref)}">Products</a></li>
+                  <li class="nav-breadcrumb-item-inactive"> <a href="${esc(categoryHref(p.category))}">${esc(p.category)}</a></li>
+                  <li class="nav-breadcrumb-item-active" aria-current="page">${esc(p.name)}</li>
+                </ol>
+              </nav>
+
+              <!-- Product name heading -->
+              <h1>${esc(p.name)}</h1>
+            </div>
+
+            <!-- Product image carousel -->
+            <section class="gallery">
+              <div class="viewport">
+                <div class="track">
+                  ${slides.map(u => `<div class="slide">${imgOrPlaceholder(u, p.name)}</div>`).join("")}
+                </div>
+                ${slides.length > 1 ? `<button class="arrow prev" aria-label="Previous image">‹</button>
+                                      <button class="arrow next" aria-label="Next image">›</button>` : ""}
+              </div>
+              ${slides.length > 1 ? `<div class="dots">${slides.map((_, i) =>
+                  `<button class="dot" data-i="${i}" aria-label="Image ${i + 1}"></button>`).join("")}</div>` : ""}
+            </section>
+
+            <!-- Product description -->
+            ${p.description.length ? `<section class="description-wrap"><div class="description textbox">${p.description.map(featureHTML).join("")}</div></section>` : ""}
+
+            <section class="buy-wrap"><div class="buy" id="buy"></div></section>
+
+            <section>
+              <div class="pager">
+                ${navBtn(prev, "Previous", "")}
+                ${navBtn(next, "Next", "solid")}
+              </div>
+            </section>
+
+            ${related.length ? `<section class="related">
+              <button class="rel-toggle" aria-expanded="true" aria-controls="relGrid">
+                Related products <span class="chev">⌄</span>
+              </button>
+              <div class="rel-grid" id="relGrid">${related.map(cardHTML).join("")}</div>
+            </section>` : ""}`;
+
+          initCarousel(slides.length);
+          initBuyBox(p);
+
+          const t = app.querySelector(".rel-toggle");
+          if (t) t.onclick = () => {
+            const open = t.getAttribute("aria-expanded") !== "true";
+            t.setAttribute("aria-expanded", open);
+            document.getElementById("relGrid").hidden = !open;
+          };
+        }
+
+        function featureHTML(line) {
+          // "Label - text"  /  "Label – text"  /  "Label: text"
+          const m = line.match(/^(.+?)\s*(?:\s[-–—]\s?|:)\s*(.*)$/);
+          return m ? `<p><b>${esc(m[1])}</b> – ${esc(m[2])}</p>` : `<p>${esc(line)}</p>`;
+        }
+
+        function navBtn(p, label, cls) {
+          const l = p && linkFor(p);
+          return l
+            ? `<a class="btn ${cls}" ${linkAttrs(l)} title="${esc(p.name)}">${label}</a>`
+            : `<span class="btn ${cls} disabled">${label}</span>`;
+        }
+
+        function cardHTML(p) {
+          const prices = p.variants.map(v => v.price);
+          const min = Math.min(...prices), max = Math.max(...prices);
+          const img = p.images[0];
+          const inner = `
+              <div class="thumb">${imgOrPlaceholder(img, p.name)}</div>
+              <div class="body"><div class="name">${esc(p.name)}</div>
+                <div class="p">${min === max ? money(min) : "From " + money(min)}</div></div>`;
+          const l = linkFor(p);
+          return l ? `<a class="card" ${linkAttrs(l)}>${inner}</a>`
+                   : `<div class="card">${inner}</div>`;
+        }
+
+        /* ---------------- Size / stock / order box ---------------- */
+        function initBuyBox(p) {
+          const box = document.getElementById("buy");
+          let sel = Math.max(0, p.variants.findIndex(v => v.qty > 0));
+          const multi = p.variants.length > 1 || p.variants[0].size !== "One size";
+          const id = cartId(p);
+
+          const draw = () => {
+            const v = p.variants[sel];
+            const inCart = Cart.qtyOf(id, v.size);
+            const available = Math.max(0, v.qty - inCart);
+            box.innerHTML = `
+              <div class="price">${money(v.price)}</div>
+              ${multi ? `<div class="label">Size</div>
+                <div class="sizes">${p.variants.map((x, i) =>
+                  `<button class="size ${i === sel ? "active" : ""} ${x.qty ? "" : "oos"}" data-i="${i}"
+                    ${x.qty ? "" : 'title="Out of stock"'}>${esc(x.size)}</button>`).join("")}</div>` : ""}
+              <div class="stock ${available ? "ok" : "bad"}">${available ? available + " in stock"
+                : (v.qty ? "All available stock is in your cart" : "Out of stock")}</div>
+              <div class="row">
+                <input id="qty" type="number" min="1" max="${Math.max(1, available)}" step="1" value="1" ${available ? "" : "disabled"}
+                  aria-label="Quantity" aria-describedby="qty-err">
+                <button id="add" class="btn solid" ${available ? "" : "disabled"}>Add to cart</button>
+              </div>
+              <div id="qty-err" class="qty-err" aria-live="polite"></div>`;
+            box.querySelectorAll(".size").forEach(b => b.onclick = () => { sel = +b.dataset.i; draw(); });
+            const qty = document.getElementById("qty"), add = document.getElementById("add"),
+                  err = document.getElementById("qty-err");
+            let n = 0;   // valid quantity, 0 while the input is invalid
+            const validate = () => {
+              if (!available) return;
+              const raw = qty.value.trim();
+              n = Number(raw);
+              let msg = "";
+              if (raw === "" || !Number.isInteger(n)) msg = "Enter a whole number.";
+              else if (n < 1) msg = "Quantity must be at least 1.";
+              else if (n > available) msg = inCart ? `Only ${available} more available (${inCart} already in your cart).`
+                                                   : `Only ${v.qty} in stock.`;
+              if (msg) n = 0;
+              err.textContent = msg;
+              qty.setAttribute("aria-invalid", msg ? "true" : "false");
+              add.disabled = !!msg;
+            };
+            qty.oninput = validate; validate();
+            add.onclick = () => {
+              if (!n) return;
+              Cart.add(id, p.name, v.size, v.price, n);   // redraws this box through Cart.setView
+              toast(`Added ${n} × ${p.name} (${v.size})`);
+            };
+          };
+          Cart.setView(draw);
+          draw();
+        }
+
+        /* ---------------- Carousel ---------------- */
+        function initCarousel(count) {
+          if (count < 2) return;
+          const track = app.querySelector(".track"), dots = app.querySelectorAll(".dot");
+          let i = 0;
+          const show = n => {
+            i = (n + count) % count;
+            track.style.transform = `translateX(${-100 * i}%)`;
+            dots.forEach((d, k) => d.classList.toggle("active", k === i));
+          };
+          const auto = () => { clearInterval(timer); timer = setInterval(() => show(i + 1), 5000); };
+          app.querySelector(".arrow.prev").onclick = () => { show(i - 1); auto(); };
+          app.querySelector(".arrow.next").onclick = () => { show(i + 1); auto(); };
+          dots.forEach(d => d.onclick = () => { show(+d.dataset.i); auto(); });
+          let x0 = null;
+          track.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
+          track.addEventListener("touchend", e => {
+            if (x0 == null) return;
+            const dx = e.changedTouches[0].clientX - x0;
+            if (Math.abs(dx) > 40) { show(i + (dx < 0 ? 1 : -1)); auto(); }
+            x0 = null;
+          });
+          show(0); auto();
+        }
+
+        return { render, stop: () => clearInterval(timer) };
+      }
+
+      /* ===================== START ===================== */
+      window.handleSheet = ListingPage(activeCategoryFilter());
+      loadSheet();
+    </script>
+  </body>
+</html>

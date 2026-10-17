@@ -56,7 +56,7 @@ private. The published link is set as `SHEET_CSV_URL` in `shop/index.html`.
 
 1. **Resize photos first**: about 1200–1600 px wide, JPEG or WebP, ideally under 300 KB each.
 2. **Name them by the rules below** and put them in `images/products/<product-slug>/`.
-3. **Upload** them to this repository (Add file → Upload files → Commit changes).
+3. **Upload** them to this repository (Add file → Upload files → Commit changes). Changes go through a pull request
 4. **Paste the image URL into the product's `Image` cell** in the sheet, for example:
    `https://ASPTechInc.github.io/2six2-services/images/products/interior-parts-accessories/luxury-steering-wheel-cover-1.jpg`
 
