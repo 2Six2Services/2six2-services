@@ -10,3 +10,7 @@ originals/
 *.psd
 *.ai
 *.heic
+
+# Custom
+.venv
+venv
