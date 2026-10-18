@@ -14,7 +14,7 @@
          ===================================================================== */
       .mode-list {
         --bg: #ffffff; --fg: #1f2328; --muted: #656d76; --line: #d8dee4;
-        --card: #f6f8fa; --accent: #1a73e8; --accent-fg: #ffffff;
+        --card: #f6f8fa; --accent: #d51113; --accent-fg: #ffffff;
         --ok: #1a7f37; --bad: #cf222e; --radius: 10px;
         font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         color: var(--fg); background: var(--bg); line-height: 1.45;
@@ -44,8 +44,24 @@
                justify-content: center; font-size: 42px; color: var(--muted); overflow: hidden; }
       .mode-list .thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
       .mode-list .card:hover .thumb img { transform: scale(1.05); }
+      /* Card image carousel (products with more than one image) */
+      .mode-list .thumb.carousel { position: relative; display: block; }
+      .mode-list .thumb .track { display: flex; height: 100%; transition: transform .35s ease; }
+      .mode-list .thumb .slide { flex: 0 0 100%; height: 100%; overflow: hidden;
+               display: flex; align-items: center; justify-content: center; }
+      .mode-list .thumb .arrow { position: absolute; top: 50%; transform: translateY(-50%); border: 0; cursor: pointer;
+               width: 30px; height: 30px; border-radius: 50%; background: rgba(0,0,0,.45); color: #fff;
+               font-size: 16px; line-height: 30px; padding: 0; opacity: 0; transition: opacity .2s; }
+      .mode-list .card:hover .thumb .arrow, .mode-list .thumb.carousel:hover .arrow,
+      .mode-list .thumb .arrow:focus-visible { opacity: 1; }
+      .mode-list .thumb .arrow.prev { left: 6px; } .mode-list .thumb .arrow.next { right: 6px; }
+      .mode-list .thumb .dots { position: absolute; left: 0; right: 0; bottom: 8px;
+               display: flex; justify-content: center; gap: 6px; }
+      .mode-list .thumb .dot { width: 9px; height: 9px; border-radius: 50%; border: 0; padding: 0;
+               background: rgba(255,255,255,.7); box-shadow: 0 0 2px rgba(0,0,0,.5); cursor: pointer; }
+      .mode-list .thumb .dot.active { background: var(--accent); }
       @media (prefers-reduced-motion: reduce) {
-        .mode-list .card, .mode-list .thumb img { transition: none; }
+        .mode-list .card, .mode-list .thumb img, .mode-list .thumb .track { transition: none; }
         .mode-list .card:hover, .mode-list .card:hover .thumb img { transform: none; }
       }
       .mode-list .card-body { padding: 12px; }
@@ -294,7 +310,7 @@
         }
         let text;
         try {
-          const res = await fetch(CONFIG.SHEET_CSV_URL, { cache: "no-store" });
+          const res = await fetch(CONFIG.SHEET_CSV_URL, { cache: "no-store", referrerPolicy: "no-referrer" });
           if (!res.ok) throw new Error("HTTP " + res.status);
           text = await res.text();
         } catch (e) {
@@ -344,6 +360,8 @@
 
       const money = n => `${CONFIG.CURRENCY_PREFIX}${Number(n).toFixed(2)} ${CONFIG.CURRENCY_SUFFIX}`;
       const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      // Only web links from the sheet; anything else (e.g. "javascript:") becomes ""
+      const safeUrl = u => /^https?:\/\//i.test(u) ? u : "";
       const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
       // Grey camera + "No image available": used when a product has no image or its image fails to load
@@ -356,7 +374,7 @@
           <span>No image available</span>
         </div>`;
       const imgOrPlaceholder = (src, alt) =>
-        src ? `<img src="${esc(src)}" alt="${esc(alt)}" loading="lazy">` : NO_IMAGE_HTML;
+        src ? `<img src="${esc(src)}" alt="${esc(alt)}" loading="lazy" referrerpolicy="no-referrer">` : NO_IMAGE_HTML;
       // Broken image links (e.g. a Drive file no longer shared) show the placeholder too
       document.addEventListener("error", e => {
         if (e.target.tagName === "IMG") e.target.outerHTML = NO_IMAGE_HTML;
@@ -572,6 +590,8 @@
         let products = [];
         let fullProducts = [];   // same sheet parsed the product-details way (images, link, related)
         let activePage = "";
+        let cardTimers = [];     // card carousel autoplay
+        const stopCardCarousels = () => { cardTimers.forEach(clearInterval); cardTimers = []; };
         Cart.syncBadges();
 
         // Previous/Next, Related and breadcrumbs stay inside the listing instead of leaving the embed
@@ -606,13 +626,13 @@
             if (CATEGORY_FILTER && category.toLowerCase() !== CATEGORY_FILTER.toLowerCase()) return;
 
             const id = slug(category + "-" + name);
-            if (!map.has(id)) map.set(id, { id, category, name, description: "", image: "", variants: [] });
+            if (!map.has(id)) map.set(id, { id, category, name, description: "", images: [], variants: [] });
             const p = map.get(id);
             const desc = String(cell(r, "description")).trim();
-            // First image only; Drive share links converted to direct URLs
-            const img = driveImg((String(cell(r, "image")).split(/[\n,]+/)[0] || "").trim());
+            // All images (Drive share links converted to direct URLs), no duplicates
+            String(cell(r, "image")).split(/[\n,]+/).map(x => x.trim()).filter(Boolean).map(driveImg)
+              .forEach(u => { if (!p.images.includes(u)) p.images.push(u); });
             if (!p.description && desc) p.description = desc;
-            if (!p.image && img) p.image = img;
             p.variants.push({
               size: String(cell(r, "size")).trim() || "One size",
               price: num(cell(r, "price")),
@@ -639,6 +659,7 @@
         function route() {
           if (!products.length) return showMsg("No products found.");
           Cart.setView(null);
+          stopCardCarousels();
           closeFull();
           setDetailsShown(false);
           const m = location.hash.match(/^#\/product\/(.+)$/);
@@ -678,6 +699,7 @@
 
         // ---------- Product listing
         function renderList() {
+          stopCardCarousels();
           const q = document.getElementById("search").value.trim().toLowerCase();
           const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
           const list = products.filter(p =>
@@ -695,9 +717,57 @@
 
           app.querySelectorAll(".chip").forEach(b => b.onclick = () => { activePage = b.dataset.page; renderList(); });
           app.querySelectorAll(".card").forEach(c => {
-            c.onclick = () => go("#/product/" + encodeURIComponent(c.dataset.id));
-            c.onkeydown = e => { if (e.key === "Enter") c.onclick(); };
+            const open = () => go("#/product/" + encodeURIComponent(c.dataset.id));
+            const carousel = c.querySelector(".thumb.carousel");
+            const swipedRecently = carousel ? initCarousel(carousel, { hoverOnly: c }) : () => false;
+            c.onclick = () => { if (!swipedRecently()) open(); };
+            c.onkeydown = e => { if (e.key === "Enter" && e.target === c) open(); };
           });
+        }
+
+        // Same behaviour as the details page carousel: arrows, dots, swipe, 5s autoplay.
+        //   hoverOnly: element – autoplay only while the mouse is over it (product cards)
+        //   start / onShow: image to start on, and a callback with the image shown (kept across redraws)
+        // Returns a check so the tap that ends a swipe doesn't also open the product.
+        function initCarousel(box, { hoverOnly = null, start = 0, onShow = () => {} } = {}) {
+          const track = box.querySelector(".track"), dots = box.querySelectorAll(".dot");
+          const count = track.children.length;
+          let i = 0, timer, swipedAt = 0, hovered = false;
+          const show = n => {
+            i = (n + count) % count;
+            track.style.transform = `translateX(${-100 * i}%)`;
+            dots.forEach((d, k) => d.classList.toggle("active", k === i));
+            onShow(i);
+          };
+          const stop = () => {
+            clearInterval(timer);
+            cardTimers = cardTimers.filter(t => t !== timer);
+          };
+          const auto = () => {
+            stop();
+            if (hoverOnly && !hovered) return;
+            timer = setInterval(() => show(i + 1), 5000);
+            cardTimers.push(timer);
+          };
+          if (hoverOnly) {
+            hoverOnly.addEventListener("mouseenter", () => { hovered = true; auto(); });
+            hoverOnly.addEventListener("mouseleave", () => { hovered = false; stop(); });
+          }
+          // Arrow and dot clicks change the image without opening the product
+          const ctl = (el, fn) => { if (el) el.onclick = e => { e.stopPropagation(); fn(); auto(); }; };
+          ctl(box.querySelector(".arrow.prev"), () => show(i - 1));
+          ctl(box.querySelector(".arrow.next"), () => show(i + 1));
+          dots.forEach(d => ctl(d, () => show(+d.dataset.i)));
+          let x0 = null;
+          track.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
+          track.addEventListener("touchend", e => {
+            if (x0 == null) return;
+            const dx = e.changedTouches[0].clientX - x0;
+            if (Math.abs(dx) > 40) { show(i + (dx < 0 ? 1 : -1)); auto(); swipedAt = Date.now(); }
+            x0 = null;
+          });
+          show(start); auto();
+          return () => Date.now() - swipedAt < 500;
         }
 
         function cardHTML(p) {
@@ -705,7 +775,7 @@
           const min = Math.min(...prices), max = Math.max(...prices);
           const stock = p.variants.reduce((s, v) => s + v.qty, 0);
           return `<div class="card" data-id="${esc(p.id)}" tabindex="0" role="link" aria-label="${esc(p.name)}">
-              <div class="thumb">${thumb(p)}</div>
+              ${carouselThumb(p)}
               <div class="card-body">
                 <div class="muted">${esc(p.category)}</div>
                 <h3>${esc(p.name)}</h3>
@@ -721,14 +791,16 @@
           setDetailsShown(true);
           let sel = p.variants.findIndex(v => v.qty > 0);
           if (sel < 0) sel = 0;
+          let img = 0;   // carousel image, kept when the view redraws (size change, add to cart)
 
           const draw = () => {
+            stopCardCarousels();
             const v = p.variants[sel];
             const available = v.qty - Cart.qtyOf(p.id, v.size);
             app.innerHTML = `
               <p><button id="back">← Back to products</button></p>
               <div class="detail">
-                <div class="thumb" style="border-radius:var(--radius)">${thumb(p)}</div>
+                ${carouselThumb(p, "border-radius:var(--radius)")}
                 <div>
                   <div class="muted">${esc(p.category)}</div>
                   <h1>${esc(p.name)}</h1>
@@ -752,6 +824,8 @@
                 </div>
               </div>`;
 
+            const carousel = app.querySelector(".thumb.carousel");
+            if (carousel) initCarousel(carousel, { start: img, onShow: n => { img = n; } });
             document.getElementById("back").onclick = () => go("");
             app.querySelectorAll(".size").forEach(b => b.onclick = () => { sel = +b.dataset.i; draw(); });
             const add = document.getElementById("add");
@@ -766,7 +840,22 @@
         }
 
         function thumb(p) {
-          return imgOrPlaceholder(p.image, p.name);
+          return imgOrPlaceholder(p.images[0], p.name);
+        }
+
+        // Product image box: a carousel when the product has more than one image
+        function carouselThumb(p, style = "") {
+          const st = style ? ` style="${style}"` : "";
+          if (p.images.length < 2) return `<div class="thumb"${st}>${thumb(p)}</div>`;
+          return `<div class="thumb carousel"${st}>
+              <div class="track">
+                ${p.images.map(u => `<div class="slide">${imgOrPlaceholder(u, p.name)}</div>`).join("")}
+              </div>
+              <button class="arrow prev" aria-label="Previous image">‹</button>
+              <button class="arrow next" aria-label="Next image">›</button>
+              <div class="dots">${p.images.map((_, i) =>
+                `<button class="dot" data-i="${i}" aria-label="Image ${i + 1}"></button>`).join("")}</div>
+            </div>`;
         }
 
         document.getElementById("search").addEventListener("input", () => { if (location.hash) go(""); else renderList(); });
@@ -805,7 +894,7 @@
                                             link: "", related: [], variants: [] });
           const p = map.get(key);
           if (!p.description.length) p.description = str(r, "description", "features").split(/\n+/).map(x => x.trim()).filter(Boolean);
-          if (!p.link) p.link = str(r, "link", "url");
+          if (!p.link) p.link = safeUrl(str(r, "link", "url"));
           if (!p.related.length) p.related = split(str(r, "related"));
           split(str(r, "image", "images")).map(driveImg).forEach(u => { if (!p.images.includes(u)) p.images.push(u); });
           p.variants.push({
