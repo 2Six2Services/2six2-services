@@ -299,7 +299,7 @@
           Product     product name (one row per size; repeat the name for each size)
           Description one point per line inside the cell:  Quick and easy access - Enter text here
                       (text before " - " is shown bold; a line without " - " is shown as plain text)
-          Size        e.g. Small, Medium, Large (blank = "One size")
+          Size        e.g. Small, Medium, Large, One size (blank = nothing i.e. not specified)
           Price       number
           Quantity    stock count
           Image       one or more image URLs, separated by new lines or commas (Drive share links work)
@@ -410,7 +410,7 @@
       }
 
       /* ===================== CART (shared) =====================
-         One cart is kept in localStorage. It only includes products, sizes and quantities only. It never includescustomer details.
+         One cart is kept in localStorage. It only includes products, sizes and quantities only. It never includes customer details.
          Any element with class "cart-count" shows the item count.
          Cart.open() shows the cart dialog: cart -> "Order by email" (preview, open email app or copy). */
       const cartId = p => slug(p.category + "-" + p.name);   // Same ID that the listing uses for its products
@@ -647,7 +647,7 @@
               .forEach(u => { if (!p.images.includes(u)) p.images.push(u); });
             if (!p.description && desc) p.description = desc;
             p.variants.push({
-              size: String(cell(r, "size")).trim() || "One size",
+              size: String(cell(r, "size")).trim() || "",
               price: num(cell(r, "price")),
               qty: Math.max(0, Math.floor(num(cell(r, "quantity"))))
             });
@@ -911,7 +911,7 @@
           if (!p.related.length) p.related = split(str(r, "related"));
           split(str(r, "image", "images")).map(driveImg).forEach(u => { if (!p.images.includes(u)) p.images.push(u); });
           p.variants.push({
-            size: str(r, "size") || "One size",
+            size: str(r, "size") || "",
             price: num(cell(r, "price")),
             qty: Math.max(0, Math.floor(num(cell(r, "quantity", "qty", "stock"))))
           });
@@ -1035,7 +1035,8 @@
         function initBuyBox(p) {
           const box = document.getElementById("buy");
           let sel = Math.max(0, p.variants.findIndex(v => v.qty > 0));
-          const multi = p.variants.length > 1 || p.variants[0].size !== "One size";
+          const excluded_sizes = ["", "One size"]
+          const multi = p.variants.length > 1 || !excluded_sizes.includes(p.variants[0].size);
           const id = cartId(p);
 
           const draw = () => {
