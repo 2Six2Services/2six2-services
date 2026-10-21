@@ -1076,10 +1076,12 @@
               add.disabled = !!msg;
             };
             qty.oninput = validate; validate();
+            
+            const toastMsgSuffix = v.size ? ` (${v.size})` : "";
             add.onclick = () => {
               if (!n) return;
               Cart.add(id, p.name, v.size, v.price, n);   // redraws this box through Cart.setView
-              toast(`Added ${n} × ${p.name} (${v.size})`);
+              toast(`Added ${n} × ${p.name}${toastMsgSuffix}`);
             };
           };
           Cart.setView(draw);
