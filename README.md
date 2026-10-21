@@ -114,4 +114,4 @@ Changes pushed to this repository go live on GitHub Pages within a few minutes.
 
 ## Licence
 
-All rights reserved. Product images, logos and brand names belong to 2Six2 Services. See [LICENSE](LICENSE).
+All rights reserved. Logos and brand names belong to 2Six2 Services while most product images are the property of their respective owners and used for illustration purposes only. See [LICENSE](LICENSE).
