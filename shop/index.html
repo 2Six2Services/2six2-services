@@ -278,9 +278,11 @@
         //   index.html/product/interior-parts-accessories-boot-organiser      -> list opened on that product's details page
 
         // ---- Shared settings ----
-        // Published CSV link of the Products tab: in the sheet, File → Share → Publish to web →
-        // choose the "Products" tab and "Comma-separated values (.csv)" → Publish, and paste the link here.
-        // The spreadsheet itself can then stay "Restricted" as its real ID is never in this page.
+        // Published CSV link of the "Products" tab from the Google Sheet sheet
+        // using the steps: File --> Share --> Publish to web --> 
+        // choose the "Products" tab and "Comma-separated values (.csv)" → Publish
+        // The link shown was copied and pasted here.
+        // The spreadsheet itself remains "Restricted".
         SHEET_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRYrIuBARqks3Z3kKB0MGU9yM7VVxtQPdelNl_TDsT_GiAGzSc74iVYTlOOEYnkOU1dkFkpfahSgbH5/pub?gid=344177599&single=true&output=csv",
         CURRENCY_PREFIX: "$",
         CURRENCY_SUFFIX: "EC",
@@ -317,7 +319,7 @@
       // Fetch the published CSV and hand it to the page as { status, table: { cols, rows } }
       async function loadSheet() {
         if (!CONFIG.SHEET_CSV_URL) {
-          return showMsg("No product list yet: paste the published CSV link of the Products tab into SHEET_CSV_URL.");
+          return showMsg("No product list yet. Paste the published CSV link of the Products tab into SHEET_CSV_URL.");
         }
         let text;
         try {
@@ -329,7 +331,7 @@
         }
         // An unpublished or wrong link returns a Google web page instead of CSV
         if (/^\s*</.test(text)) {
-          return showMsg("The product list link isn't a published CSV. In the sheet use File → Share → Publish to web → Products → CSV.");
+          return showMsg("The product list link isn't a published CSV. In the sheet use File --> Share --> Publish to web --> Products --> CSV.");
         }
         const [header = [], ...rows] = parseCSV(text).filter(r => r.some(v => v.trim() !== ""));
         window.handleSheet({
@@ -341,7 +343,7 @@
         });
       }
 
-      // RFC 4180 CSV: quoted fields may contain commas, line breaks and doubled quotes ("")
+      // RFC 4180 CSV: quoted fields may contain commas, line breaks and double quotes ("")
       function parseCSV(text) {
         const rows = [];
         let row = [], field = "", quoted = false;
@@ -375,7 +377,7 @@
       const safeUrl = u => /^https?:\/\//i.test(u) ? u : "";
       const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-      // Grey camera + "No image available": used when a product has no image or its image fails to load
+      // Grey camera + "No image available". This is used when a product has no image or its image fails to load
       const NO_IMAGE_HTML = `<div class="no-img">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                stroke-linejoin="round" aria-hidden="true">
@@ -386,7 +388,7 @@
         </div>`;
       const imgOrPlaceholder = (src, alt) =>
         src ? `<img src="${esc(src)}" alt="${esc(alt)}" loading="lazy" referrerpolicy="no-referrer" width="1000" height="1000">` : NO_IMAGE_HTML;
-      // Broken image links (e.g. a Drive file no longer shared) show the placeholder too
+      // Broken image links result in the placeholder being shown (e.g. a Drive file no longer shared)
       document.addEventListener("error", e => {
         if (e.target.tagName === "IMG") e.target.outerHTML = NO_IMAGE_HTML;
       }, true);
@@ -408,10 +410,10 @@
       }
 
       /* ===================== CART (shared) =====================
-         One cart, kept in localStorage. It includes products, sizes and quantities only, never customer details.
+         One cart is kept in localStorage. It only includes products, sizes and quantities only. It never includescustomer details.
          Any element with class "cart-count" shows the item count.
-         Cart.open() shows the cart dialog: cart -> "Order by email" (preview, open email app, or copy). */
-      const cartId = p => slug(p.category + "-" + p.name);   // same id the listing uses for its products
+         Cart.open() shows the cart dialog: cart -> "Order by email" (preview, open email app or copy). */
+      const cartId = p => slug(p.category + "-" + p.name);   // Same ID that the listing uses for its products
 
       const Cart = (() => {
         const KEY = "gs-cart";
@@ -538,7 +540,7 @@
               <button type="button" class="cd-btn" data-back>← Back to cart</button>
             </div>
             <p class="cd-note">Nothing happens when you click "Open my email app"? Copy the order, paste it into
-              a new email (for example in Gmail) and send it to the address above.</p>`;
+              a new email (for example in Gmail or Outlook) and send it to the address above.</p>`;
           const preview = body.querySelector(".cd-preview");
           body.querySelector("[data-copy]").onclick = e => copyText(e.currentTarget, preview, "Copy order");
           body.querySelector("[data-copy-addr]").onclick = e => copyText(e.currentTarget, body.querySelector(".cd-addr"), "Copy address");
@@ -592,11 +594,11 @@
         const searchBar = document.getElementById("searchBar");
         const fullEl = document.getElementById("full-details");
         const fab = document.getElementById("cartFab");
-        // Product details on screen: hide the search bar and use the floating cart button instead
+        // On product details on screen, hide the search bar and use the floating cart button
         const setDetailsShown = on => {
           searchBar.hidden = on;
           fab.hidden = !on;
-          document.body.classList.toggle("has-fab", on);   // room at the bottom so the button covers nothing
+          document.body.classList.toggle("has-fab", on);   // Apply room at the bottom so the button covers nothing
         };
         let products = [];
         let fullProducts = [];   // same sheet parsed the product-details way (images, link, related)
@@ -658,7 +660,7 @@
             return v ? v.price : null;
           });
 
-          // "?product=Name" (e.g. old product-details links) opens that product's page
+          // "?product=Name" opens that product's page
           const asked = (new URLSearchParams(location.search).get("product") || "").trim().toLowerCase();
           const start = asked && !location.hash && products.find(p => p.name.toLowerCase() === asked);
           if (start) history.replaceState(null, "", "#/product/" + encodeURIComponent(start.id));
@@ -877,7 +879,7 @@
       }
 
       /* =====================================================================
-         FULL DETAILS PAGE (product-details.html logic), shown inside the list
+         FULL DETAILS PAGE shown inside the list
          ===================================================================== */
       // Parse the sheet the product-details way: all images, Link, Related, grouped by ID (or name)
       function parseDetailsProducts(res) {
@@ -972,9 +974,11 @@
 
             <!-- Product description -->
             ${p.description.length ? `<section class="description-wrap"><div class="description textbox">${p.description.map(featureHTML).join("")}</div></section>` : ""}
-
+            
+            <!-- Buy product section -->
             <section class="buy-wrap"><div class="buy" id="buy"></div></section>
 
+            <!-- Next and previous product buttons -->
             <section>
               <div class="pager">
                 ${navBtn(prev, "Previous", "")}
@@ -982,6 +986,7 @@
               </div>
             </section>
 
+            <!-- Related products section -->
             ${related.length ? `<section class="related">
               <button class="rel-toggle" aria-expanded="true" aria-controls="relGrid">
                 Related products <span class="chev">⌄</span>
