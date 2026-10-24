@@ -8,10 +8,10 @@ Product catalogue and cart for **2Six2 Services** are embedded in the company's 
 
 | What | URL |
 |---|---|
-| Shop – all products | `https://ASPTechInc.github.io/2six2-services/shop/` |
-| Shop – one category | `https://ASPTechInc.github.io/2six2-services/shop/?category=Interior%20Parts%20&%20Accessories` |
-| Shop – one product | `https://ASPTechInc.github.io/2six2-services/shop/?product=Luxury%20Steering%20Wheel%20Cover` |
-| Images | `https://ASPTechInc.github.io/2six2-services/images/` |
+| Shop – all products | `https://2Six2Services.github.io/2six2-services/shop/` |
+| Shop – one category | `https://2Six2Services.github.io/2six2-services/shop/?category=Interior%20Parts%20&%20Accessories` |
+| Shop – one product | `https://2Six2Services.github.io/2six2-services/shop/?product=Luxury%20Steering%20Wheel%20Cover` |
+| Images | `https://2Six2Services.github.io/2six2-services/images/` |
 
 ## What's in this repository
 
@@ -58,7 +58,7 @@ private. The published link is set as `SHEET_CSV_URL` in `shop/index.html`.
 2. **Name them by the rules below** and put them in `images/products/<product-slug>/`.
 3. **Upload** them to this repository (Add file → Upload files → Commit changes). Changes go through a pull request
 4. **Paste the image URL into the product's `Image` cell** in the sheet, for example:
-   `https://ASPTechInc.github.io/2six2-services/images/products/interior-parts-accessories/luxury-steering-wheel-cover-1.jpg`
+   `https://2Six2Services.github.io/2six2-services/images/products/interior-parts-accessories/luxury-steering-wheel-cover-1.jpg`
 
 Naming rules:
 
