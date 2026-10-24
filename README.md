@@ -2,6 +2,8 @@
 
 Product catalogue and cart for **2Six2 Services** are embedded in the company's Google Sites' website where customers can browse products, add them to a cart and send their order by email from their email account.
 
+The HTML and script that loads the "Products" website page (and each product details' page) is taken from [shop/index.html](https://raw.githubusercontent.com/2Six2Services/2six2-services/refs/heads/main/shop/index.html) on [on this GitHub repository](https://github.com/2Six2Services/2six2-services).
+
 > Given that **this repository is public**, its content and history can be seen by anyone so never add customer details, passwords, spreadsheet edit links or other private files.
 
 ## Live URLs
@@ -75,6 +77,8 @@ Products without an image, or with a broken image link, show a grey "No image av
 ## Embedding in Google Sites
 
 Use **Insert → Embed → By URL** (not "Embed code") and paste one of the shop URLs. One Sites page per view:
+
+The embedded link is https://2Six2Services.github.io/2six2-services/shop/index.html.
 
 | Google Sites page | Embed URL |
 |---|---|
